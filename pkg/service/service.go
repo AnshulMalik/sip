@@ -55,14 +55,12 @@ type Service struct {
 
 func NewService(
 	conf *config.Config, srv rpc.SIPInternalServerImpl, sipServiceStop sipServiceStopFunc,
-	sipServiceActiveCalls sipServiceActiveCallsFunc, cli rpc.IOInfoClient, bus psrpc.MessageBus,
+	sipServiceActiveCalls sipServiceActiveCallsFunc,
 ) *Service {
 	s := &Service{
 		conf: conf,
 
 		psrpcServer: srv,
-		psrpcClient: cli,
-		bus:         bus,
 
 		sipServiceStop:        sipServiceStop,
 		sipServiceActiveCalls: sipServiceActiveCalls,
@@ -97,11 +95,11 @@ func (s *Service) Run() error {
 		}()
 	}
 
-	srv, err := rpc.NewSIPInternalServer(s.psrpcServer, s.bus)
-	if err != nil {
-		return err
-	}
-	defer srv.Shutdown()
+	//srv, err := rpc.NewSIPInternalServer(s.psrpcServer, s.bus)
+	//if err != nil {
+	//	return err
+	//}
+	//defer srv.Shutdown()
 
 	logger.Debugw("service ready")
 

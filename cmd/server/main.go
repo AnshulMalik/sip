@@ -15,7 +15,10 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"github.com/100mslive/go-sdk/log"
+	"github.com/livekit/protocol/rpc"
 	"os"
 	"os/signal"
 	"syscall"
@@ -23,10 +26,6 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/redis"
-	"github.com/livekit/protocol/rpc"
-	"github.com/livekit/psrpc"
-
 	"github.com/livekit/sip/pkg/config"
 	"github.com/livekit/sip/pkg/errors"
 	"github.com/livekit/sip/pkg/service"
@@ -61,22 +60,24 @@ func main() {
 }
 
 func runService(c *cli.Context) error {
+	log.Info("Reached here")
 	conf, err := getConfig(c, true)
+	logger.Infow("Reached here")
 	if err != nil {
 		return err
 	}
 
-	rc, err := redis.GetRedisClient(conf.Redis)
-	if err != nil {
-		return err
-	}
+	//rc, err := redis.GetRedisClient(conf.Redis)
+	//if err != nil {
+	//	return err
+	//}
 
-	bus := psrpc.NewRedisMessageBus(rc)
-	psrpcClient, err := rpc.NewIOInfoClient(bus)
-	if err != nil {
-		return err
-	}
-
+	//bus := psrpc.NewRedisMessageBus(rc)
+	//psrpcClient, err := rpc.NewIOInfoClient(bus)
+	//if err != nil {
+	//	return err
+	//}
+	log.Info("Reached here")
 	stopChan := make(chan os.Signal, 1)
 	signal.Notify(stopChan, syscall.SIGTERM, syscall.SIGQUIT)
 
@@ -88,13 +89,27 @@ func runService(c *cli.Context) error {
 		return err
 	}
 
-	svc := service.NewService(conf, sipsrv.InternalServerImpl(), sipsrv.Stop, sipsrv.ActiveCalls, psrpcClient, bus)
+	svc := service.NewService(conf, sipsrv.InternalServerImpl(), sipsrv.Stop, sipsrv.ActiveCalls)
 	sipsrv.SetAuthHandler(svc.HandleTrunkAuthentication)
 	sipsrv.SetDispatchRuleHandlerFunc(svc.HandleDispatchRules)
 
 	if err = sipsrv.Start(); err != nil {
 		return err
 	}
+
+	ctx := context.Background()
+	logger.Infow("Reached here")
+	participant, err := sipsrv.InternalServerImpl().UpdateSIPParticipant(ctx, &rpc.InternalUpdateSIPParticipantRequest{
+		ParticipantId: "test",
+
+		RoomName:            "jdu-ivyr-jsw",
+		ParticipantIdentity: "phone-peer",
+	})
+	if err != nil {
+		logger.Errorw("error", err)
+		return err
+	}
+	logger.Infow("participant", "participant", participant)
 
 	go func() {
 		select {

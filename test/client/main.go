@@ -17,6 +17,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/emiago/sipgo/transport"
 	"math/rand"
 	"net"
 	"os"
@@ -36,12 +37,12 @@ import (
 )
 
 var (
-	sipServer    = flag.String("sip-server", "", "")
-	to           = flag.String("to", "+15550100000", "")
-	from         = flag.String("from", "+15550100001", "")
-	username     = flag.String("username", "", "")
-	password     = flag.String("password", "", "")
-	sipUri       = flag.String("sip-uri", "example.pstn.twilio.com", "")
+	sipServer    = flag.String("sip-server", "narayan-test1.pstn.twilio.com:5060", "")
+	to           = flag.String("to", "+16504894546", "")
+	from         = flag.String("from", "+17723184057", "")
+	username     = flag.String("username", "test1", "")
+	password     = flag.String("password", "test1AuthTwilio", "")
+	sipUri       = flag.String("sip-uri", "narayan-test1.pstn.twilio.com?transport=tcp", "")
 	filePathPlay = flag.String("play", "audio.mkv", "")
 	filePathSave = flag.String("save", "save.mkv", "")
 
@@ -179,7 +180,8 @@ func parseAnswer(in []byte) (string, int) {
 	if err := offer.Unmarshal(in); err != nil {
 		panic(err)
 	}
-
+	fmt.Println("parseAnswer", offer)
+	fmt.Println("address, port", offer.ConnectionInformation.Address.Address, offer.MediaDescriptions[0].MediaName.Port.Value)
 	return offer.ConnectionInformation.Address.Address, offer.MediaDescriptions[0].MediaName.Port.Value
 }
 
@@ -256,6 +258,7 @@ func attemptInvite(sipClient *sipgo.Client, offer []byte, authorizationHeaderVal
 	}
 
 	tx, err := sipClient.TransactionRequest(inviteRequest)
+	fmt.Println("sending transaction request")
 	if err != nil {
 		panic(err)
 	}
@@ -265,6 +268,7 @@ func attemptInvite(sipClient *sipgo.Client, offer []byte, authorizationHeaderVal
 }
 
 func main() {
+	transport.SIPDebug = true
 	flag.Parse()
 
 	var err error
@@ -305,6 +309,7 @@ func main() {
 		inviteRequest, inviteResponse = attemptInvite(sipClient, offer, authorizationHeaderValue)
 
 		if inviteResponse.StatusCode == 407 {
+			fmt.Println("got 407 response")
 			if *username == "" || *password == "" {
 				panic("Server responded with 407, but no username or password was provided")
 			}
@@ -331,7 +336,8 @@ func main() {
 			// Compute digest and try again
 			continue
 		} else if inviteResponse.StatusCode != 200 {
-			panic(fmt.Sprintf("Unexpected StatusCode from INVITE response %d", inviteResponse.StatusCode))
+			fmt.Println(fmt.Sprintf("Unexpected StatusCode from INVITE response %d", inviteResponse.StatusCode))
+			fmt.Println("invite response", inviteResponse)
 		}
 
 		break
@@ -347,7 +353,8 @@ func main() {
 	}
 
 	if err = sipClient.WriteRequest(sip.NewAckRequest(inviteRequest, inviteResponse, nil)); err != nil {
-		panic(err)
+		//panic(err)
+		fmt.Println("err:", err)
 	}
 
 	sendBye := func() {
@@ -356,7 +363,8 @@ func main() {
 
 		tx, err := sipClient.TransactionRequest(req)
 		if err != nil {
-			panic(err)
+			//panic(err)
+			fmt.Println("err:", err)
 		}
 
 		getResponse(tx)

@@ -178,7 +178,7 @@ func (c *outboundCall) updateRoom(lkNew lkRoomConfig) error {
 		c.room = nil
 		c.lkRoomIn = nil
 	}
-	r, err := ConnectToRoom(c.c.conf, lkNew.roomName, lkNew.identity)
+	r, err := ConnectToHmsRoom(c.c.conf, lkNew.roomName, lkNew.identity)
 	if err != nil {
 		return err
 	}
@@ -262,12 +262,14 @@ func (c *outboundCall) stopSIP(reason string) {
 
 func (c *outboundCall) sipSignal(conf sipOutboundConfig) error {
 	offer, err := sdpGenerateOffer(c.c.signalingIp, c.rtpConn.LocalAddr().Port)
+	logger.Infow("offer", "offer", string(offer))
 	if err != nil {
 		return err
 	}
 	c.mon.CallStart()
 	joinDur := c.mon.JoinDur()
 	inviteReq, inviteResp, err := c.sipInvite(offer, conf)
+	logger.Infow("inviteResp", "inviteResp", inviteResp)
 	if err != nil {
 		c.mon.CallEnd()
 		logger.Errorw("SIP invite failed", err)
@@ -301,6 +303,8 @@ func (c *outboundCall) sipAttemptInvite(offer []byte, conf sipOutboundConfig, au
 		req.AppendHeader(sip.NewHeader("Proxy-Authorization", authHeader))
 	}
 
+	logger.Infow("req", "req", req)
+
 	tx, err := c.c.sipCli.TransactionRequest(req)
 	if err != nil {
 		c.mon.InviteError("tx-failed")
@@ -309,6 +313,7 @@ func (c *outboundCall) sipAttemptInvite(offer []byte, conf sipOutboundConfig, au
 	defer tx.Terminate()
 
 	resp, err := sipResponse(tx)
+	logger.Infow("resp", "resp", resp)
 	if err != nil {
 		c.mon.InviteError("tx-failed")
 	}

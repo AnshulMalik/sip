@@ -1,0 +1,6 @@
+log_level: debug
+api_key: NOT-A-VALID-KEY
+api_secret: EXISTING-SECRET
+ws_url: ws://localhost:7880
+redis:
+  address: localhost:6379
