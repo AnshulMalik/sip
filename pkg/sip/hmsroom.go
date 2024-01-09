@@ -140,6 +140,7 @@ func (r *HmsRoom) NewParticipant() (media.Writer[media.PCM16Sample], error) {
 	t := &CustomTrack{TrackLocalStaticSample: track}
 	l := log.New(log.WithLevel(zapcore.InfoLevel))
 	pubTrack := rtc.NewPublishTrack(t, l)
+	pubTrack.SetEnabled(true)
 
 	err = r.sdk.Transport().Publish([]*rtc.PublishTrack{pubTrack})
 	if err != nil {
