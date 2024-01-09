@@ -60,6 +60,9 @@ func (c *MediaConn) OnRTP(h rtp.Handler) {
 }
 
 func (c *MediaConn) Close() error {
+	c.wmu.Lock()
+	defer c.wmu.Unlock()
+
 	if c.conn != nil {
 		c.conn.Close()
 		c.conn = nil
@@ -113,6 +116,10 @@ func (c *MediaConn) WriteRTP(p *rtp.Packet) error {
 	}
 	c.wmu.Lock()
 	defer c.wmu.Unlock()
+	if c.conn == nil {
+		return nil
+	}
+
 	_, err = c.conn.WriteTo(data, addr)
 	return err
 }

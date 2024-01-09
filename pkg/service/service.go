@@ -153,7 +153,7 @@ func (s *Service) HandleDispatchRules(ctx context.Context, callingNumber, called
 	//	logger.Warnw("SIP handle dispatch rule error", err)
 	//	return "", "", "", "", false, true
 	//}
-	requestPin = pin != ""
+	requestPin = pin == ""
 	return "hms", "phone-peer", "", "", requestPin, false
 	//return resp.RoomName, resp.ParticipantIdentity, resp.WsUrl, resp.Token, resp.RequestPin, false
 }
