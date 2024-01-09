@@ -19,6 +19,7 @@ import (
 	"go.uber.org/zap/zapcore"
 	"io"
 	"sync/atomic"
+	"time"
 )
 
 type HmsRoom struct {
@@ -145,11 +146,16 @@ func (r *HmsRoom) NewParticipant() (media.Writer[media.PCM16Sample], error) {
 	pubTrack := rtc.NewPublishTrack(t, l)
 	pubTrack.SetEnabled(true)
 
-	logger.Infow("publishing track", "track", pubTrack)
-	err = r.sdk.Transport().Publish([]*rtc.PublishTrack{pubTrack})
-	if err != nil {
-		return nil, err
-	}
+	go func() {
+		<-time.After(2 * time.Second)
+
+		logger.Infow("publishing track", "track", pubTrack)
+		err = r.sdk.Transport().Publish([]*rtc.PublishTrack{pubTrack})
+		//if err != nil {
+		//	return nil, err
+		//}
+	}()
+
 	ow := media.FromSampleWriter[opus.Sample](track, sampleDur)
 	pw, err := opus.Encode(ow, sampleRate, channels)
 	if err != nil {

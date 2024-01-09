@@ -188,6 +188,7 @@ func (c *outboundCall) updateRoom(lkNew lkRoomConfig) error {
 		_ = r.Close()
 		return err
 	}
+
 	c.room = r
 	c.lkRoomIn = local
 	c.lkCur = lkNew
