@@ -146,29 +146,29 @@ func (r *HmsRoom) NewParticipant() (media.Writer[media.PCM16Sample], error) {
 	pubTrack := rtc.NewPublishTrack(t, l)
 	pubTrack.SetEnabled(true)
 
-	go func() {
-		<-time.After(2 * time.Second)
-
-		logger.Infow("publishing track", "track", pubTrack)
-		err = r.sdk.Transport().Publish([]*rtc.PublishTrack{pubTrack})
-		//if err != nil {
-		//	return nil, err
-		//}
-	}()
-
 	ow := media.FromSampleWriter[opus.Sample](track, sampleDur)
 	pw, err := opus.Encode(ow, sampleRate, channels)
 	if err != nil {
 		return nil, err
 	}
-	r.addDummyVideoTrack(streamId)
+	vidTrack := r.dummyVideoTrack(streamId)
+
+	go func() {
+		<-time.After(2 * time.Second)
+
+		logger.Infow("publishing tracks", "track", pubTrack, "vidTrack", vidTrack)
+		err = r.sdk.Transport().Publish([]*rtc.PublishTrack{pubTrack, vidTrack})
+		//if err != nil {
+		//	return nil, err
+		//}
+	}()
 	return pw, nil
 }
 
-func (r *HmsRoom) addDummyVideoTrack(streamId string) {
+func (r *HmsRoom) dummyVideoTrack(streamId string) *rtc.PublishTrack {
 	track, err := webrtc.NewTrackLocalStaticSample(webrtc.RTPCodecCapability{MimeType: webrtc.MimeTypeVP8}, utils.NewTrackID(), streamId)
 	if err != nil {
-		return
+		return nil
 	}
 
 	t := &CustomTrack{TrackLocalStaticSample: track}
@@ -176,15 +176,7 @@ func (r *HmsRoom) addDummyVideoTrack(streamId string) {
 	pubTrack := rtc.NewPublishTrack(t, l)
 	pubTrack.SetEnabled(false)
 
-	go func() {
-		<-time.After(2 * time.Second)
-
-		logger.Infow("publishing video track", "track", pubTrack)
-		err = r.sdk.Transport().Publish([]*rtc.PublishTrack{pubTrack})
-		//if err != nil {
-		//	return nil, err
-		//}
-	}()
+	return pubTrack
 }
 
 func (r *HmsRoom) NewTrack() Track {
