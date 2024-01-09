@@ -6,6 +6,7 @@ import (
 	"github.com/100mslive/go-sdk/hms"
 	"github.com/100mslive/go-sdk/hms/rtc"
 	"github.com/100mslive/go-sdk/log"
+	"github.com/100mslive/go-sdk/testutils"
 	"github.com/livekit/protocol/logger"
 	"github.com/livekit/sip/pkg/config"
 	"github.com/livekit/sip/pkg/media"
@@ -180,7 +181,7 @@ func NewHMSRoom() (*HmsRoom, error) {
 	r := &HmsRoom{}
 
 	o := hms.NewEventObserver()
-	sdk, err := hms.New(o.App())
+	sdk, err := hms.New(o.App(), hms.WithLogger(testutils.NewLogger(zapcore.DebugLevel)))
 
 	if err != nil {
 		return nil, err
