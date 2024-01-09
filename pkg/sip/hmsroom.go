@@ -7,6 +7,7 @@ import (
 	"github.com/100mslive/go-sdk/hms/rtc"
 	"github.com/100mslive/go-sdk/log"
 	"github.com/100mslive/go-sdk/testutils"
+	"github.com/100mslive/go-sdk/utils"
 	"github.com/livekit/protocol/logger"
 	"github.com/livekit/sip/pkg/config"
 	"github.com/livekit/sip/pkg/media"
@@ -133,7 +134,8 @@ func (c *CustomTrack) TotalBytes() uint64 {
 }
 
 func (r *HmsRoom) NewParticipant() (media.Writer[media.PCM16Sample], error) {
-	track, err := webrtc.NewTrackLocalStaticSample(webrtc.RTPCodecCapability{MimeType: webrtc.MimeTypeOpus}, "audio", "pion")
+	streamId := utils.NewTrackID()
+	track, err := webrtc.NewTrackLocalStaticSample(webrtc.RTPCodecCapability{MimeType: webrtc.MimeTypeOpus}, utils.NewTrackID(), streamId)
 	if err != nil {
 		return nil, err
 	}
@@ -153,21 +155,7 @@ func (r *HmsRoom) NewParticipant() (media.Writer[media.PCM16Sample], error) {
 	if err != nil {
 		return nil, err
 	}
-	r.addDummyVideoTrack()
 	return pw, nil
-}
-
-func (r *HmsRoom) addDummyVideoTrack() {
-	track, err := webrtc.NewTrackLocalStaticSample(webrtc.RTPCodecCapability{MimeType: webrtc.MimeTypeVP8}, "video", "pion")
-	if err != nil {
-		return
-	}
-	t := &CustomTrack{TrackLocalStaticSample: track}
-	l := log.New(log.WithLevel(zapcore.InfoLevel))
-	t.SetEnabled(false)
-	logger.Infow("publishing video track", "track", t)
-	pubTrack := rtc.NewPublishTrack(t, l)
-	err = r.sdk.Transport().Publish([]*rtc.PublishTrack{pubTrack})
 }
 
 func (r *HmsRoom) NewTrack() Track {
