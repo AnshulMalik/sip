@@ -182,6 +182,7 @@ func (c *outboundCall) updateRoom(lkNew lkRoomConfig) error {
 	if err != nil {
 		return err
 	}
+
 	local, err := r.NewParticipant()
 	if err != nil {
 		_ = r.Close()

@@ -143,6 +143,7 @@ func (r *HmsRoom) NewParticipant() (media.Writer[media.PCM16Sample], error) {
 	pubTrack := rtc.NewPublishTrack(t, l)
 	pubTrack.SetEnabled(true)
 
+	logger.Infow("publishing track", "track", pubTrack)
 	err = r.sdk.Transport().Publish([]*rtc.PublishTrack{pubTrack})
 	if err != nil {
 		return nil, err
@@ -164,6 +165,7 @@ func (r *HmsRoom) addDummyVideoTrack() {
 	t := &CustomTrack{TrackLocalStaticSample: track}
 	l := log.New(log.WithLevel(zapcore.InfoLevel))
 	t.SetEnabled(false)
+	logger.Infow("publishing video track", "track", t)
 	pubTrack := rtc.NewPublishTrack(t, l)
 	err = r.sdk.Transport().Publish([]*rtc.PublishTrack{pubTrack})
 }
