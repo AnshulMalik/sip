@@ -161,7 +161,30 @@ func (r *HmsRoom) NewParticipant() (media.Writer[media.PCM16Sample], error) {
 	if err != nil {
 		return nil, err
 	}
+	r.addDummyVideoTrack(streamId)
 	return pw, nil
+}
+
+func (r *HmsRoom) addDummyVideoTrack(streamId string) {
+	track, err := webrtc.NewTrackLocalStaticSample(webrtc.RTPCodecCapability{MimeType: webrtc.MimeTypeVP8}, utils.NewTrackID(), streamId)
+	if err != nil {
+		return
+	}
+
+	t := &CustomTrack{TrackLocalStaticSample: track}
+	l := log.New(log.WithLevel(zapcore.InfoLevel))
+	pubTrack := rtc.NewPublishTrack(t, l)
+	pubTrack.SetEnabled(false)
+
+	go func() {
+		<-time.After(2 * time.Second)
+
+		logger.Infow("publishing video track", "track", pubTrack)
+		err = r.sdk.Transport().Publish([]*rtc.PublishTrack{pubTrack})
+		//if err != nil {
+		//	return nil, err
+		//}
+	}()
 }
 
 func (r *HmsRoom) NewTrack() Track {
