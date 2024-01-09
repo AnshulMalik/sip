@@ -15,10 +15,9 @@
 package main
 
 import (
-	"context"
 	"fmt"
+	"github.com/100mslive/go-sdk/hms/flags"
 	"github.com/100mslive/go-sdk/log"
-	"github.com/livekit/protocol/rpc"
 	"os"
 	"os/signal"
 	"syscall"
@@ -97,19 +96,9 @@ func runService(c *cli.Context) error {
 		return err
 	}
 
-	ctx := context.Background()
 	logger.Infow("Reached here")
-	participant, err := sipsrv.InternalServerImpl().UpdateSIPParticipant(ctx, &rpc.InternalUpdateSIPParticipantRequest{
-		ParticipantId: "test",
-
-		RoomName:            "jdu-ivyr-jsw",
-		ParticipantIdentity: "phone-peer",
-	})
-	if err != nil {
-		logger.Errorw("error", err)
-		return err
-	}
-	logger.Infow("participant", "participant", participant)
+	flags.ToggleSdkTraceLogging(true)
+	flags.ToggleJsonRpcTraceLogging(true)
 
 	go func() {
 		select {

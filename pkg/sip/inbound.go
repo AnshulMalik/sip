@@ -190,8 +190,13 @@ func (s *Server) newInboundCall(mon *stats.CallMonitor, tag string, from *sip.Fr
 		to:   to,
 		src:  src,
 		dtmf: make(chan byte, 10),
-		room: NewLkRoom(), // we need it created earlier so that the audio mixer is available for pin prompts
 	}
+	room, err := NewHMSRoom()
+	if err != nil {
+		logger.Errorw("Cannot create HMS room", err)
+	}
+	c.room = room
+
 	c.ctx, c.cancel = context.WithCancel(context.Background())
 	s.cmu.Lock()
 	s.activeCalls[tag] = c

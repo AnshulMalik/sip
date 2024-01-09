@@ -124,36 +124,38 @@ func (s *Service) Run() error {
 }
 
 func (s *Service) HandleTrunkAuthentication(from, to, toHost, srcAddress string) (username, password string, err error) {
-	resp, err := s.psrpcClient.GetSIPTrunkAuthentication(context.TODO(), &rpc.GetSIPTrunkAuthenticationRequest{
-		From:       from,
-		To:         to,
-		ToHost:     toHost,
-		SrcAddress: srcAddress,
-	})
-
-	if err != nil {
-		return "", "", err
-	}
-
-	return resp.Username, resp.Password, nil
+	//resp, err := s.psrpcClient.GetSIPTrunkAuthentication(context.TODO(), &rpc.GetSIPTrunkAuthenticationRequest{
+	//	From:       from,
+	//	To:         to,
+	//	ToHost:     toHost,
+	//	SrcAddress: srcAddress,
+	//})
+	//
+	//if err != nil {
+	//	return "", "", err
+	//}
+	//
+	//return resp.Username, resp.Password, nil
+	return "", "", nil
 }
 
 func (s *Service) HandleDispatchRules(ctx context.Context, callingNumber, calledNumber, calledHost, srcAddress string, pin string, noPin bool) (joinRoom, identity, wsUrl, token string, requestPin, rejectInvite bool) {
-	resp, err := s.psrpcClient.EvaluateSIPDispatchRules(ctx, &rpc.EvaluateSIPDispatchRulesRequest{
-		CallingNumber: callingNumber,
-		CalledNumber:  calledNumber,
-		CalledHost:    calledHost,
-		SrcAddress:    srcAddress,
-		Pin:           pin,
-		NoPin:         noPin,
-	})
-
-	if err != nil {
-		logger.Warnw("SIP handle dispatch rule error", err)
-		return "", "", "", "", false, true
-	}
-
-	return resp.RoomName, resp.ParticipantIdentity, resp.WsUrl, resp.Token, resp.RequestPin, false
+	//resp, err := s.psrpcClient.EvaluateSIPDispatchRules(ctx, &rpc.EvaluateSIPDispatchRulesRequest{
+	//	CallingNumber: callingNumber,
+	//	CalledNumber:  calledNumber,
+	//	CalledHost:    calledHost,
+	//	SrcAddress:    srcAddress,
+	//	Pin:           pin,
+	//	NoPin:         noPin,
+	//})
+	//
+	//if err != nil {
+	//	logger.Warnw("SIP handle dispatch rule error", err)
+	//	return "", "", "", "", false, true
+	//}
+	requestPin = pin != ""
+	return "hms", "phone-peer", "", "", requestPin, false
+	//return resp.RoomName, resp.ParticipantIdentity, resp.WsUrl, resp.Token, resp.RequestPin, false
 }
 
 func (s *Service) CanAccept() bool {
