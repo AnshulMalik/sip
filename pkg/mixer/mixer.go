@@ -94,6 +94,8 @@ func (m *Mixer) doMix() {
 		samplesToPrune := 1
 
 		if input.samples.Len() < input.bufferSize && input.samples.Len()%2 == 1 && !input.ignoredLastPrune {
+			// Handles underflow, when we have less samples, don't consume too fast, as it may lead to glitches audio
+			// or drops in audio
 			samplesToPrune = 0
 		} else if input.samples.Len() > input.bufferSize && input.bufferSize != 0 {
 			samplesToPrune = input.samples.Len() / input.bufferSize
